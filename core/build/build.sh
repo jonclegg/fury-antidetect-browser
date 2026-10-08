@@ -5,7 +5,7 @@
 # Build the patched Chromium.
 #
 # Usage: core/build/build.sh <target>
-#   targets: macos-arm64 | macos-x64 | windows-x64
+#   targets: macos-arm64 | macos-x64 | windows-x64 | linux-x64 | linux-arm64
 #
 # Full build: 1.5-3 h on 32+ cores, 4-8 h on a laptop. Incremental after one
 # patch: 5-30 min. Do not delete out/ between runs — that is your ccache.
@@ -13,7 +13,7 @@ set -euo pipefail
 
 CORE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC="$CORE_DIR/src"
-TARGET="${1:?usage: build.sh <macos-arm64|macos-x64|windows-x64>}"
+TARGET="${1:?usage: build.sh <macos-arm64|macos-x64|windows-x64|linux-x64|linux-arm64>}"
 # `.noindex` is not decoration: it is the only thing measured to work.
 #
 # ninja writes the five helper applications as standalone bundles beside
@@ -125,6 +125,23 @@ case "$TARGET" in
     # system-wide on the build server already; exported here so a fresh machine
     # or a stripped environment does not fail differently.
     export DEPOT_TOOLS_WIN_TOOLCHAIN=0
+    ;;
+  linux-x64*|linux-arm64*)
+    # Both from an x64 Linux host: linux-x64 natively, linux-arm64 against the
+    # arm64 sysroot fetch.sh asks gclient for. The other direction (an arm64
+    # host) is not what Chromium's Linux toolchain prebuilts are made for.
+    [ "$(uname -s)" = "Linux" ] && [ "$(uname -m)" = "x86_64" ] || {
+      echo "!! Linux targets build on an x86_64 Linux host." >&2
+      exit 1
+    }
+    # The host tools the build runs (gperf, bison, the X11 headers some
+    # generators read). Chromium's own script installs them; it needs sudo, so it
+    # is named here rather than run.
+    command -v gperf >/dev/null || {
+      echo "!! Build dependencies are missing. Run once:" >&2
+      echo "!!   sudo $SRC/build/install-build-deps.sh --no-prompt --no-chromeos-fonts" >&2
+      exit 1
+    }
     ;;
   *) echo "!! Unknown target: $TARGET" >&2; exit 1 ;;
 esac

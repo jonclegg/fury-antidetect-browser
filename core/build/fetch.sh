@@ -93,6 +93,11 @@ fi
 if [ ! -d "$SRC" ]; then
   echo "==> First fetch. This takes a while (tens of GB)."
   mkdir -p "$SRC"
+  # On a Linux host, also fetch the arm64 sysroot so linux-arm64 can be
+  # cross-compiled from the same tree. gclient derives checkout_arm64 from this
+  # list, and the sysroot hook in DEPS is conditioned on it.
+  TARGET_CPUS=""
+  [ "$(uname -s)" = "Linux" ] && TARGET_CPUS='target_cpu = ["x64", "arm64"]'
   cat > "$CORE_DIR/.gclient" <<EOF
 solutions = [
   {
@@ -105,6 +110,7 @@ solutions = [
     },
   },
 ]
+$TARGET_CPUS
 EOF
   git -C "$SRC" init -q
   git -C "$SRC" remote add origin https://chromium.googlesource.com/chromium/src.git
