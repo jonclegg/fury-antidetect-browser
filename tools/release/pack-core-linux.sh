@@ -11,10 +11,10 @@
 # reason: the output directory is build tree, and what the browser needs to run
 # is a small part of it.
 #
-# chrome_sandbox is shipped as chrome-sandbox, the name the browser looks for
-# beside itself. It only does anything once it is root-owned and setuid 4755,
-# which a tarball cannot carry; without that the browser falls back to the
-# user-namespace sandbox, which is what a container normally uses anyway.
+# No chrome-sandbox. The setuid helper only does anything once it is root-owned
+# and setuid 4755, which a tarball cannot carry, and build.sh builds `chrome`,
+# not the separate chrome_sandbox target. Without it the browser uses the
+# user-namespace sandbox, which is what a container normally offers anyway.
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 target="${1:?usage: pack-core-linux.sh <linux-x64|linux-arm64>}"
@@ -45,7 +45,6 @@ missing=0
 for f in "${files[@]}"; do
   [ -f "$f" ] || { echo "!! missing: $f" >&2; missing=1; }
 done
-[ -f chrome_sandbox ] || { echo "!! missing: chrome_sandbox" >&2; missing=1; }
 [ "$missing" = 0 ] || exit 1
 
 stage="$here/dist-core/$target/Fury"
@@ -53,7 +52,6 @@ rm -rf "$stage" && mkdir -p "$stage"
 cp "${files[@]}" "$stage/"
 for f in "${optional[@]}"; do [ -f "$f" ] && cp "$f" "$stage/"; done
 for d in "${dirs[@]}"; do [ -d "$d" ] && cp -r "$d" "$stage/"; done
-cp chrome_sandbox "$stage/chrome-sandbox"
 cp "$here/core/CHROMIUM_VERSION" "$stage/"
 
 echo "== staged"

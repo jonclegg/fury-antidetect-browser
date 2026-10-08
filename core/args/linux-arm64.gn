@@ -34,6 +34,9 @@ enable_widevine = true
 enable_print_preview = true
 
 use_lld = true
+# There is one Linux profile, chrome/build/linux.pgo.txt, and pgo/BUILD.gn picks
+# it for every Linux CPU; pgo.gni defaults an official Linux build of any CPU to
+# phase 2. So this is upstream's own arm64 configuration, not a guess.
 chrome_pgo_phase = 2
 
 # --- match real Chrome's feature set ----------------------------------------
