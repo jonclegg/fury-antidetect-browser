@@ -26,6 +26,7 @@ Usage: core/verify/verify-0900.py <core binary>
 import json
 import os
 import plistlib
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -58,9 +59,22 @@ READ = """
 """
 
 
-def main():
-    claims = Claims("0900 — branding, visible to the operator only", CORE)
+def renamed_on_linux(claims):
+    """The operator's half on Linux, where there is no bundle to look at.
 
+    The core is a loose `chrome` beside its paks, and the name an operator meets
+    is the product name it prints, which comes from the same BRANDING file
+    Info.plist does on a Mac.
+    """
+    version = subprocess.run([CORE, "--version"], capture_output=True,
+                             text=True, timeout=30).stdout.strip()
+    print(f"  --version: {version!r}")
+    renamed = version.startswith("Fury ")
+    claims.check(renamed, f"the binary calls itself Fury (got {version!r})")
+    return renamed
+
+
+def renamed_on_mac(claims):
     # The bundle on disk.
     app = os.path.abspath(os.path.join(os.path.dirname(CORE), "..", ".."))
     outdir = os.path.dirname(app)
@@ -92,6 +106,16 @@ def main():
                  f"every helper is renamed with it — Fury.app spawning "
                  f"'Chromium Helper' is what an operator meets at first launch "
                  f"({helpers})")
+    return os.path.basename(app) == "Fury.app"
+
+
+def main():
+    claims = Claims("0900 — branding, visible to the operator only", CORE)
+
+    if sys.platform.startswith("linux"):
+        renamed = renamed_on_linux(claims)
+    else:
+        renamed = renamed_on_mac(claims)
 
     # And none of it reaches a page.
     with launch(CORE, None) as s:
@@ -123,7 +147,7 @@ def main():
         version = s.js("navigator.userAgent.match(/Chrome\\/([\\d.]+)/)[1]")
         print(f"  reported Chrome version: {version}")
         claims.control(
-            os.path.basename(app) == "Fury.app"
+            renamed
             and "Chrome/" in got["main"]["ua"]
             and "Fury" not in got["main"]["ua"],
             f"the binary IS renamed on disk and still says Chrome/{version} to "
