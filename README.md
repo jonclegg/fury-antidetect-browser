@@ -56,7 +56,9 @@ team. No seats, no per-profile pricing, no telemetry.
 > com.apple.quarantine /Applications/Fury.app` once; [docs/15](docs/15-install.md)
 > walks through both.
 >
-> **Linux** is not a target. See the table at the bottom.
+> **Linux** builds from source on this branch: linux-x64 and linux-arm64 cores,
+> both from one x64 Linux host. The core only, and no packaged release;
+> [docs/15](docs/15-install.md#linux) has the commands and what was measured.
 >
 > Everything that is *not* done is listed at the bottom, honestly.
 
@@ -305,7 +307,6 @@ row says why the alternative is worse.
 
 | | |
 |---|---|
-| Linux | not a target, and this is a decision rather than a gap. The Rust still compiles there so CI and contributors can run the suite; there is no Linux release, no Linux core config and no plan for one. Shipping a third platform nobody tests would be a claim, not a port |
 | WebRTC through the proxy | no. The relay is TCP; patch 0070 puts the browser in the state a real Chrome reaches under the enterprise `WebRTCIPHandlingPolicy` — no ICE candidates at all — rather than let a peer connection go around the proxy and hand the page the real address |
 | Hiding CDP from a timing check | no, and now known to be unclosable rather than merely undone. Split into its two parts ([cdp-timing.py](tools/detect-suite/cdp-timing.py)): attaching costs nothing, `Runtime.enable` costs a fixed 2.7x plus more as the logged object grows. A patch can remove the size half — preview generation — and not the fixed half, which is the message reaching the frontend at all. Real Chrome measures the same. The control that works is `cdp: false`, which is the default |
 | Automatic updates | the application checks, and never installs. Since 0.2.18 it asks GitHub for a new release at start and every six hours and shows a bar with the download for your system; Settings → About turns the check off. The request goes from this machine's address, not a profile's proxy, and tells GitHub only that some machine runs Fury. An updater that replaced the application by itself would be a scheduled channel into an anti-detect browser, and that stays out. [docs/15](docs/15-install.md) says how to install over the old version |

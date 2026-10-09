@@ -194,13 +194,50 @@ working browser without DRM, and a site that checks for it will notice.
 
 ## Linux
 
-Not a target. This is a decision rather than a gap, and it is worth stating
-plainly because an earlier version of this page promised a Linux release.
+The core builds on this branch, for linux-x64 and linux-arm64. There is no
+packaged release, and the agent and the desktop shell have not been run on
+Linux: what exists is the patched browser and the verify scripts that check it.
 
-The Rust still compiles on Linux — CI runs there and contributors can run the
-test suite — but there is no packaged release, no build configuration for the
-core, and no plan for one. Two platforms that get tested are worth more than
-three where one is a guess.
+Both targets build from one x86_64 Linux host, linux-arm64 by cross-compiling
+against the sysroot `fetch.sh` asks gclient for when it runs on Linux:
+
+```bash
+core/build/fetch.sh "$(cat core/CHROMIUM_VERSION)"
+sudo core/src/build/install-build-deps.sh --no-prompt --no-chromeos-fonts
+core/build/apply.sh
+core/build/build.sh linux-x64
+core/build/build.sh linux-arm64
+tools/release/pack-core-linux.sh linux-x64     # dist/fury-core-linux-x64.tar.xz
+tools/release/pack-core-linux.sh linux-arm64   # dist/fury-core-linux-arm64.tar.xz
+```
+
+Measured 08.10.2026 on Chromium 155.0.8059.12: on 128 cores (c6i.32xlarge), the
+x64 build was about 30 minutes and arm64 about 45. Each core is about 140 MB
+packed.
+
+The port needed one fix that the other platforms could not show. On Linux,
+renderers are forked from the zygote and never run `Initialize()`, where 0001
+mapped the config, so every page reported the host. 0001 now maps it in
+`RunZygote` as well. Before that, verify-0001 read the host's 128 cores and 21
+of 28 scripts failed.
+
+`core/verify/run-all.py` under Xvfb, after the fix:
+
+| | linux-x64 (Ubuntu 24.04, Xvfb) | linux-arm64 (Debian container, Xvfb) |
+|---|---|---|
+| pass with no extra flags | 21 of 28 | 22 of 28 |
+| pass once the host has the thing measured | +5 | +3 |
+| not run, and why | 0050 (no Georgia or Papyrus); 0121 (a server cannot be unplugged) | 0041 (no speech-dispatcher in the image); 0121; 0902 (`--no-sandbox`, which a root container needs, raises the infobar it measures) |
+
+"The thing measured" was SwiftShader for 0031 and 0032
+(`--enable-unsafe-swiftshader`), speech-dispatcher for 0041
+(`--enable-speech-dispatcher`), fake capture devices for 0060, and a screen
+unlike the persona's for 0020's control.
+
+No `chrome-sandbox` is packed: the setuid helper needs root ownership that a
+tarball cannot carry. Without it the browser uses the user-namespace sandbox,
+which Ubuntu 24.04 restricts by default
+(`kernel.apparmor_restrict_unprivileged_userns`).
 
 ## Where things are kept
 
