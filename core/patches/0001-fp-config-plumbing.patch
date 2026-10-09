@@ -725,10 +725,10 @@ index d9b662aab3..12737e7a98 100644
             "//content/browser",
             "//content/gpu:gpu_sources",
 diff --git a/content/app/content_main_runner_impl.cc b/content/app/content_main_runner_impl.cc
-index 7a8ade5283..abebf1c2e3 100644
+index 92ab96d48c..325efa4386 100644
 --- a/content/app/content_main_runner_impl.cc
 +++ b/content/app/content_main_runner_impl.cc
-@@ -58,6 +58,8 @@
+@@ -61,6 +61,8 @@
  #include "build/build_config.h"
  #include "components/discardable_memory/service/discardable_shared_memory_manager.h"
  #include "components/download/public/common/download_task_runner.h"
@@ -737,7 +737,7 @@ index 7a8ade5283..abebf1c2e3 100644
  #include "components/power_monitor/make_power_monitor_device_source.h"
  #include "components/tracing/common/tracing_switches.h"
  #include "components/variations/net/variations_command_line.h"
-@@ -133,6 +135,9 @@
+@@ -140,6 +142,9 @@
  #include <malloc.h>
  #include <cstring>
  
@@ -747,7 +747,27 @@ index 7a8ade5283..abebf1c2e3 100644
  #include "ui/base/l10n/l10n_util_win.h"
  #include "ui/display/win/dpi.h"
  #elif BUILDFLAG(IS_MAC)
-@@ -863,6 +868,12 @@ int ContentMainRunnerImpl::Initialize(ContentMainParams params) {
+@@ -659,6 +664,19 @@ NO_STACK_PROTECTOR int RunZygote(ContentMainDelegate* delegate) {
+   CHECK(IsSaltInitialized())
+       << "Pseudonymization salt must be initialized in child processes";
+ 
++  // Fury: a child forked from the zygote never runs Initialize() -- the zygote
++  // ran it once, at its own start, without the switch -- so the config branch
++  // there is never reached and every renderer, worker and utility on Linux
++  // would run with no persona. Mapped here instead, beside the salt, which
++  // travels the same way. Measured before this was added: the browser held the
++  // config and verify-0001 still read the host's 128 cores in every context.
++  if (command_line->HasSwitch(fury::switches::kFingerprintHandle)) {
++    if (!fury::FuryConfig::InitializeInChild(command_line->GetSwitchValueASCII(
++            fury::switches::kFingerprintHandle))) {
++      LOG(FATAL) << "fury: zygote child could not map the fingerprint config";
++    }
++  }
++
+   const ContentMainDelegate::InvokedInChildProcess invoked_in_child;
+   if (delegate->ShouldCreateFeatureList(invoked_in_child)) {
+     InitializeFieldTrialAndFeatureList();
+@@ -921,6 +939,12 @@ int ContentMainRunnerImpl::Initialize(ContentMainParams params) {
    g_fds->Set(kPseudonymizationSaltDescriptor,
               kPseudonymizationSaltDescriptor +
                   base::GlobalDescriptors::kBaseDescriptor);
@@ -760,7 +780,7 @@ index 7a8ade5283..abebf1c2e3 100644
  #endif  // !BUILDFLAG(IS_ANDROID)
  
  #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_OPENBSD)
-@@ -873,6 +884,69 @@ int ContentMainRunnerImpl::Initialize(ContentMainParams params) {
+@@ -931,6 +955,69 @@ int ContentMainRunnerImpl::Initialize(ContentMainParams params) {
  
  #endif  // !BUILDFLAG(IS_WIN)
  
