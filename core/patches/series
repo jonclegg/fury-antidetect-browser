@@ -768,3 +768,23 @@
 # from the output device, and a container without sound hardware answers
 # 44100 Hz / 0.0107 s where a Mac answers 48000 Hz / 0.0053 s.
 0044-audio-context-persona.patch
+# Answers a Linux host gives differently from the Mac a persona describes,
+# found by auditing every page-visible surface against Chrome on an M5 Mac
+# (research/audit.py). Each reads the persona and leaves the real answer when
+# the persona does not set one.
+# Text set as CoreText sets it: unhinted, subpixel, linear advances, Mac ascent
+# and descent rounding. Hinted FreeType glyphs measured in whole pixels.
+0045-text-rendering-persona.patch
+# System colors (Highlight, SelectedItem...) and BlinkMacSystemFont as system-ui.
+0046-appearance-persona.patch
+# HEVC support and hardware decode/encode (canPlayType, MSE, MediaCapabilities
+# powerEfficient, WebCodecs) as the persona GPU has them.
+0047-media-persona.patch
+# WebAuthn platform authenticator, Bluetooth availability, keyboard layout,
+# CPU performance tier, BarcodeDetector formats.
+0048-platform-answers-persona.patch
+# WebGPU features the persona GPU has and SwiftShader lacks.
+0049-webgpu-features-persona.patch
+# Glyph bounds from outlines (canvas measureText, HarfBuzz extents) and text
+# control widths from the x glyph and the ascent, as on a Mac.
+0050-glyph-bounds-and-control-widths-persona.patch
