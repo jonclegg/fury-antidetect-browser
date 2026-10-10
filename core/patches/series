@@ -794,3 +794,5 @@
 # WebGL texture-format extensions and sample counts from the persona, and the
 # outer window size in iframes built on the outermost frame.
 0053-webgl-formats-and-outer-size-persona.patch
+# The translate service Google Chrome has, for the page-facing hrefTranslate.
+0054-translate-service-persona.patch
