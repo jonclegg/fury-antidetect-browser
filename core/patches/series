@@ -169,6 +169,13 @@
 # a way no real machine fails — worse than the leak it was meant to close.
 0032-webgpu-adapter.patch!             # WebGPU is still moving fast upstream
 0033-client-rects.patch
+# WebGL2's own limits, shader precision, and a WebGL2 extension list. 0031 covers
+# the WebGL1 limits; a WebGL2 context answers its limits before reaching that
+# code, and getShaderPrecisionFormat was never covered, so on Linux in a
+# container both came from SwiftShader under an Apple renderer string. Measured
+# 09.10.2026 against Chrome 154 on an M5 Mac: 17 WebGL2 limits and every lowp and
+# mediump precision differed, and an Akamai sensor carried the WebGL2 limits.
+0034-webgl2-limits-precision.patch
 
 # --- audio ------------------------------------------------------------------
 # Silence and flat runs are left exact: an unconnected oscillator renders zeros
@@ -176,6 +183,10 @@
 # oscillator, 27.09.2026). Every sample of a moving signal is still perturbed.
 0040-audio-noise.patch
 0041-speech-voices.patch
+# The persona's voice list when the machine has none. A Linux container has no
+# voices and a Mac has around 200; an Akamai sensor carried both the count and a
+# hash of the names. Widens, unlike 0041, and only when the list is empty.
+0042-speech-synthetic-voices.patch
 
 # --- fonts ------------------------------------------------------------------
 # Filters at the fallback layer, not just the enumeration API — measurement
