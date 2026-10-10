@@ -787,4 +787,4 @@
 0049-webgpu-features-persona.patch
 # Glyph bounds from outlines (canvas measureText, HarfBuzz extents) and text
 # control widths from the x glyph and the ascent, as on a Mac.
-0050-glyph-bounds-and-control-widths-persona.patch
+0051-glyph-bounds-and-control-widths-persona.patch
