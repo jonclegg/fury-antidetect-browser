@@ -788,3 +788,9 @@
 # Glyph bounds from outlines (canvas measureText, HarfBuzz extents) and text
 # control widths from the x glyph and the ascent, as on a Mac.
 0051-glyph-bounds-and-control-widths-persona.patch
+# Forced-fallback WebGPU answers null, WebRTC lists the persona's hardware codecs,
+# and voices arrive with voiceschanged, as Chrome on a Mac does.
+0052-gpu-codecs-voices-persona.patch
+# WebGL texture-format extensions and sample counts from the persona, and the
+# outer window size in iframes built on the outermost frame.
+0053-webgl-formats-and-outer-size-persona.patch
