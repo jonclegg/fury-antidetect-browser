@@ -759,3 +759,12 @@
 # Dock, one of them a profile he had closed. The keep-alive is released once
 # the first window exists; nothing a page can observe changes. macOS only.
 0903-mac-quit-with-last-window.patch
+# The WebGPU adapter a persona GPU presents, beyond 0032 vendor/architecture:
+# isFallbackAdapter, subgroup sizes, and the preferred canvas format. Without a
+# GPU (a container) the adapter is SwiftShader and said so: isFallbackAdapter
+# true, subgroups of 4, rgba8unorm (the Linux answer) under an Apple vendor.
+0043-webgpu-adapter-persona.patch
+# AudioContext default sample rate and baseLatency from the persona. Both come
+# from the output device, and a container without sound hardware answers
+# 44100 Hz / 0.0107 s where a Mac answers 48000 Hz / 0.0053 s.
+0044-audio-context-persona.patch
